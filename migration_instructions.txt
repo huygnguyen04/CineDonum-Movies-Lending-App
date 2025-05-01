@@ -1,0 +1,40 @@
+# Migration Instructions
+
+To apply the changes to the Review model and add the new LoanRecord model, follow these steps:
+
+1. Open a terminal and navigate to the project directory:
+```
+cd path/to/project-a-29
+```
+
+2. Run the migrations command:
+```
+python manage.py makemigrations movies
+```
+
+3. When prompted about the non-nullable fields being added to the Review model:
+   - Select option 1 to provide a one-off default
+   - For 'author', you can enter "Anonymous" as the default value
+
+4. Apply the migrations:
+```
+python manage.py migrate
+```
+
+## What Changed
+
+### Review Model Changes
+- Made `title` field in Review model optional (can be blank or null)
+- Made `rating` field in Review model optional (can be blank or null)
+- Made `author` field in Review model optional (can be blank or null)
+- Updated the `__str__` method to handle cases where title is null
+- Updated the add_review function to create reviews without requiring a title
+
+### New LoanRecord Model
+- Added a new `LoanRecord` model to track movie borrowing
+- Added views for patrons to request to borrow movies
+- Added views for librarians to manage loan requests (approve, reject, check out, return)
+- Created UI templates for the borrowing workflow
+- Updated navigation to include links to loans views
+
+These changes allow patrons to request to borrow movies and librarians to manage these requests. The system also tracks borrowed items, due dates, and loan history. 

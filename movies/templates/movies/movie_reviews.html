@@ -1,0 +1,401 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}{{ movie.title }} Reviews{% endblock %}
+{% block header_title %}{{ movie.title }} - Reviews{% endblock %}
+
+{% block content %}
+<div class="movie-review-container">
+    <!-- Movie Details -->
+    <div class="movie-details">
+        <div class="movie-image">
+            {% if movie.images.all %}
+                <img src="{{ movie.images.first.image.url }}" alt="{{ movie.title }} image">
+            {% else %}
+                <img src="{% static 'movies/default_movie.png' %}" alt="Default movie image">
+            {% endif %}
+        </div>
+        <div class="movie-info">
+            <h2>{{ movie.title }}</h2>
+            <p><strong>Released on:</strong> {{ movie.release_date }}</p>
+            
+            <!-- Average Rating Display -->
+            <div class="average-rating">
+                <p><strong>Average Rating:</strong> 
+                    <span class="stars-container">
+                        {% with avg_rating=movie.average_rating|floatformat:1 %}
+                            {% if avg_rating != '0.0' %}
+                                {{ avg_rating }} / 5
+                                <span class="stars">
+                                    {% for i in '12345'|make_list %}
+                                        {% if forloop.counter <= avg_rating|add:"0.5"|floatformat:"0"|add:"0" %}
+                                            <span class="star star-filled">★</span>
+                                        {% else %}
+                                            <span class="star star-empty">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            {% else %}
+                                No ratings yet
+                            {% endif %}
+                        {% endwith %}
+                    </span>
+                </p>
+            </div>
+            
+            <p class="movie-description">{{ movie.description }}</p>
+            
+            <!-- Movie Identification and Location -->
+            <div class="movie-identification">
+                {% if movie.key_value %}
+                    <p><strong>ID/Barcode:</strong> <span class="movie-id-badge">{{ movie.key_value }}</span></p>
+                {% endif %}
+                <p><strong>Location:</strong> {{ movie.location }}</p>
+            </div>
+            
+            <!-- Movie Status and Borrowing -->
+            <div class="movie-status">
+                <p><strong>Status:</strong> <span class="status-badge {% if movie.status == 'available' %}status-available{% else %}status-unavailable{% endif %}">{{ movie.status|title }}</span></p>
+                
+                {% if user_authenticated and movie.status == 'available' %}
+                    <div class="borrow-actions">
+                        <form method="POST" action="{% url 'request_borrow' movie.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-borrow">
+                                {% if user.profile.role == 'librarian' %}
+                                    Borrow Now
+                                {% else %}
+                                    Request to Borrow
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Collections Section -->
+            {% if collections %}
+            <div class="movie-collections">
+                <h4>This movie is in the following collections:</h4>
+                <ul class="collections-list">
+                    {% for collection in collections %}
+                        <li>
+                            <a href="{% url 'collection_detail' collection.id %}" class="collection-link">
+                                {{ collection.name }}
+                                {% if not collection.is_public %}
+                                    <span class="badge-private">Private</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Reviews & Comments Section -->
+    <div class="reviews-section">
+        <h3>Reviews & Comments</h3>
+        {% if reviews %}
+            <div class="reviews-list">
+                {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            {% if review.user_role == 'librarian' %}
+                                <span class="user-role librarian-role">Librarian</span>
+                            {% elif review.user_role == 'patron' %}
+                                <span class="user-role patron-role">Patron</span>
+                            {% endif %}
+                            
+                            <span class="review-author">
+                                {% if review.author %}
+                                    {{ review.author }}
+                                {% else %}
+                                    Anonymous
+                                {% endif %}
+                            </span>
+                            
+                            <span class="review-date">
+                                {% if review.pub_date %}
+                                    {{ review.pub_date|date:"M d, Y" }}
+                                {% endif %}
+                            </span>
+                            
+                            {% if review.rating %}
+                                <span class="review-rating">
+                                    {% for i in '12345'|make_list %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <span class="star star-filled">★</span>
+                                        {% else %}
+                                            <span class="star star-empty">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="review-body">{{ review.body }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-reviews">No comments yet. Be the first to comment on this movie!</p>
+        {% endif %}
+        
+        <hr>
+        
+        <!-- Comment Submission Form - Only for authenticated users -->
+        {% if user_authenticated %}
+            <div class="review-form-container">
+                <h4>Add Your Review</h4>
+                <form method="POST" action="{% url 'add_review' movie.id %}" class="review-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group rating-group">
+                        <label>Rate this movie:</label>
+                        <div class="star-rating">
+                            <input type="radio" id="rating-5" name="rating" value="5"><label for="rating-5" title="5 stars">★</label>
+                            <input type="radio" id="rating-4" name="rating" value="4"><label for="rating-4" title="4 stars">★</label>
+                            <input type="radio" id="rating-3" name="rating" value="3"><label for="rating-3" title="3 stars">★</label>
+                            <input type="radio" id="rating-2" name="rating" value="2"><label for="rating-2" title="2 stars">★</label>
+                            <input type="radio" id="rating-1" name="rating" value="1"><label for="rating-1" title="1 star">★</label>
+                            <input type="radio" id="rating-0" name="rating" value="0"><label for="rating-0" title="No rating" class="no-star">No Rating</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="review-body">Your Comment:</label>
+                        <textarea name="body" id="review-body" rows="4" required class="form-control" placeholder="Share your thoughts about this movie..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Post Review</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="login-prompt">
+                <p>You need to be logged in to leave a review.</p>
+                <a href="{% provider_login_url 'google' %}?next={% url 'movie_reviews' movie.id %}" class="btn-login"> Sign In to Review </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .review-form-container {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    
+    /* Add styles for movie identification */
+    .movie-identification {
+        background-color: #f8f9fa;
+        border-left: 4px solid #17a2b8;
+        padding: 10px 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    
+    .movie-identification p {
+        margin: 5px 0;
+    }
+    
+    .movie-id-badge {
+        background-color: #f0f8ff;
+        padding: 3px 8px;
+        border-radius: 3px;
+        border: 1px solid #b8daff;
+        font-family: monospace;
+        font-size: 0.95em;
+        color: #004085;
+    }
+    
+    .review-form .form-group {
+        margin-bottom: 15px;
+    }
+    .review-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .review-form textarea.form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .btn-submit {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .login-prompt {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .btn-login {
+        display: inline-block;
+        background-color: #e74c3c;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    
+    /* New styles for reviews */
+    .reviews-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .review-card {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .review-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .user-role {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 3px 8px;
+        border-radius: 12px;
+        margin-right: 10px;
+    }
+    .librarian-role {
+        background-color: #2ecc71;
+        color: white;
+    }
+    .patron-role {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    /* Star rating styles */
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 0.2em;
+        font-size: 2em;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    
+    .star-rating input {
+        display: none;
+    }
+    
+    .star-rating label {
+        color: #ddd;
+        cursor: pointer;
+    }
+    
+    .star-rating :checked ~ label {
+        color: #f90;
+    }
+    
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #fc0;
+    }
+    
+    .star-rating label.no-star {
+        font-size: 0.5em;
+        color: #666;
+        margin-left: 10px;
+    }
+    
+    /* Displaying stars in reviews */
+    .review-rating {
+        margin-left: auto;
+    }
+    
+    .star {
+        font-size: 1.2em;
+        letter-spacing: 0.1em;
+    }
+    
+    .star-filled {
+        color: #f90;
+    }
+    
+    .star-empty {
+        color: #ddd;
+    }
+    
+    .average-rating {
+        margin: 10px 0;
+    }
+    
+    .stars-container {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    /* Additional styling */
+    .review-author {
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    .review-date {
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    /* Status and Borrowing styles */
+    .movie-status {
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        font-size: 14px;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+    }
+    .status-available {
+        background-color: #2ecc71;
+    }
+    .status-unavailable {
+        background-color: #e74c3c;
+    }
+    .borrow-actions {
+        margin-top: 10px;
+    }
+    .btn-borrow {
+        background-color: #f39c12;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    .btn-borrow:hover {
+        background-color: #e67e22;
+    }
+</style>
+{% endblock %}

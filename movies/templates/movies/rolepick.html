@@ -1,0 +1,31 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}My Dashboard{% endblock %}
+{% block header_title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="med-dashboard-container container">
+
+    {% if user.is_authenticated %}
+        <h2>Welcome, {{ user.email }}</h2>
+        <p class="subtext">Your current role: <strong>{{ user.profile.role|title }}</strong></p>
+        
+
+
+        <!-- Navigation to User Home -->
+        {% if user.profile.role == 'librarian' %}
+            <a href="{% url 'librarian_home' %}" class="btn btn-primary">
+                Go to Librarian Home
+            </a>
+        {% else %}
+            <a href="{% url 'patron_home' %}" class="btn btn-primary">
+                Go to Patron Home
+            </a>
+        {% endif %}
+            
+    {% else %}
+        <p>You are not authenticated. Please <a href="{% url 'login' %}">Login</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

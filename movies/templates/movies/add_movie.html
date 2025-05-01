@@ -1,0 +1,56 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Add a New Movie{% endblock %}
+{% block header_title %}Add a New Movie{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto;">
+    <h2>Add Movie</h2>
+    
+    {% if form.non_field_errors %}
+    <div class="error-messages">
+        {% for error in form.non_field_errors %}
+            <p class="error-message">{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">
+            Save
+        </button>
+    </form>
+</div>
+
+<style>
+    .error-messages {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+    }
+    
+    .error-message {
+        margin: 5px 0;
+    }
+    
+    /* Field-specific errors */
+    .errorlist {
+        color: #dc3545;
+        padding-left: 20px;
+        margin: 5px 0;
+    }
+    
+    /* Make the key_value field more visible */
+    #id_key_value {
+        font-family: monospace;
+        border: 1px solid #ced4da;
+        padding: 5px 10px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+    body.login {
+        background: #f8f9fa;
+    }
+    
+    .login #header {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    .login .admin-warning {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        color: #856404;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+    }
+    
+    .login .back-to-app {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block usertools %}{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="admin-warning">
+        <strong>Warning:</strong> This login is for administrators only. Regular users should use the Google login on the main site.
+    </div>
+
+    {% if form.errors and not form.non_field_errors %}
+    <p class="errornote">
+        {% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+    </p>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    {% for error in form.non_field_errors %}
+    <p class="errornote">
+        {{ error }}
+    </p>
+    {% endfor %}
+    {% endif %}
+
+    <div id="content-main">
+        <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+            <div class="form-row">
+                {{ form.username.errors }}
+                {{ form.username.label_tag }} {{ form.username }}
+            </div>
+            <div class="form-row">
+                {{ form.password.errors }}
+                {{ form.password.label_tag }} {{ form.password }}
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+            <div class="submit-row">
+                <input type="submit" value="{% trans 'Log in' %}">
+            </div>
+        </form>
+    </div>
+    
+    <a href="/" class="back-to-app">← Back to Main Site</a>
+</div>
+{% endblock %} 

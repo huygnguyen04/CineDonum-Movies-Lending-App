@@ -1,0 +1,97 @@
+{% extends "movies/base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}CineDonum - Guest View{% endblock %}
+
+{% block content %}
+<div class="guest-container">
+    <div class="welcome-banner">
+        <h1>Welcome to CineDonum!</h1>
+        <p>Explore our public movie library as a guest. Sign in to access more features.</p>
+    </div>
+
+    <div class="guest-info">
+        <h2>As a guest, you can:</h2>
+        <ul class="guest-features">
+            <li>Browse all publicly available movies</li>
+            <li>View public collections</li>
+            <li>Search for movies and collections</li>
+        </ul>
+        
+        <h2>Sign in to:</h2>
+        <ul class="member-features">
+            <li>Rate and review movies</li>
+            <li>Create your own collections</li>
+            <li>Access private collections (with permission)</li>
+            <li>Request to borrow items</li>
+        </ul>
+
+        <div class="guest-actions">
+            <a href="{% url 'available_movies' %}" class="btn-primary btn">Browse Movies</a>
+            <a href="{% url 'view_collections' %}" class="btn-primary btn">Browse Collections</a>
+            <a href="{% provider_login_url 'google' %}?next=/movies/rolepick/&prompt=select_account" class="btn-primary btn">Sign In</a>
+        </div>
+    </div>
+
+    
+</div>
+
+<style>
+    .guest-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .welcome-banner {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .guest-info {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    .guest-features, .member-features {
+        padding-left: 20px;
+        margin-bottom: 20px;
+    }
+    .guest-features li, .member-features li {
+        margin-bottom: 10px;
+    }
+    .guest-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .btn-view, .btn-login {
+        display: inline-block;
+        padding: 12px 25px;
+        font-size: 16px;
+        text-align: center;
+        margin: 10px 5px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .btn-view {
+        background-color: #3498db;
+        color: white;
+    }
+    .btn-login {
+        background-color: #e74c3c;
+        color: white;
+        font-weight: bold;
+    }
+    .btn-view:hover, .btn-login:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

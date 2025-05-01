@@ -1,0 +1,24 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Remove Image from {{ image.movie.title }}{% endblock %}
+{% block header_title %}Remove Image from {{ image.movie.title }}{% endblock %}
+
+{% block content %}
+    <div style="max-width:600px; margin:auto;">
+        <h2>Confirm Removal of Image</h2>
+        <p>Are you sure you want to remove this image from <strong>{{ image.movie.title }}</strong>?</p>
+        <div style="margin-bottom:20px;">
+            <img src="{{ image.image.url }}" alt="Image for {{ image.movie.title }}" style="max-width:100%; border-radius:8px;">
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">
+                Yes, remove image
+            </button>
+            <a href="{% url 'available_movies' %}" style="background:#6c757d; color:white; padding:10px 15px; border-radius:5px; text-decoration:none; margin-left:10px;">
+                Cancel
+            </a>
+        </form>
+    </div>
+{% endblock %}

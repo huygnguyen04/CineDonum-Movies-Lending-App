@@ -1,0 +1,148 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Edit Collection{% endblock %}
+{% block header_title %}Edit Collection: {{ collection.name }}{% endblock %}
+
+{% block content %}
+<div class="collection-form-container">
+    <h2>Edit Collection: {{ collection.name }}</h2>
+    
+    <div class="collection-type-info">
+        <p>
+            <strong>Collection Type:</strong> 
+            {% if collection.is_public %}
+                <span class="collection-type-public">Public Collection</span>
+            {% else %}
+                <span class="collection-type-private">Private Collection</span>
+            {% endif %}
+        </p>
+        <p class="collection-type-note">Note: Collection type cannot be changed after creation.</p>
+    </div>
+
+    {% if warning_message %}
+    <div class="warning-message">
+        {{ warning_message }}
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {# Render fields except allowed_users #}
+        {% for field in form %}
+            {% if field.name != 'allowed_users' %}
+            <div class="form-field">
+                <label>{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        {# Only show allowed_users for librarian editing private collections #}
+        {% if user.profile.role == "librarian" and form.fields.allowed_users %}
+        <div class="form-field">
+            <label>Allowed users:</label>
+            <p class="patron-help">Select patrons who should have access if this collection is private.</p>
+            {% for user_obj in form.fields.allowed_users.queryset %}
+                {% if user_obj.profile.role != "librarian" and not user_obj.is_staff %}
+                    <label class="checkbox-label">
+                        <input 
+                            type="checkbox" 
+                            name="{{ form.allowed_users.html_name }}" 
+                            value="{{ user_obj.id }}"
+                            {% if user_obj in form.instance.allowed_users.all %}checked{% endif %}
+                        > {{ user_obj.email }}
+                    </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="save-button btn btn-primary">Save Changes</button>
+        <a href="{% url 'view_collections' %}" class="cancel-button btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<style>
+.collection-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.collection-type-info {
+    background-color: #e2f3f5;
+    border-left: 4px solid #0099cc;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+}
+
+.collection-type-public {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.collection-type-private {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.collection-type-note {
+    font-style: italic;
+    color: #6c757d;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+.warning-message {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ffeeba;
+    border-radius: 4px;
+}
+
+.form-field {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.error {
+    color: #dc3545;
+    margin-top: 5px;
+}
+
+.checkbox-label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.patron-help {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.save-button {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.cancel-button {
+    text-decoration: none;
+    display: inline-block;
+}
+</style>
+{% endblock %}
+

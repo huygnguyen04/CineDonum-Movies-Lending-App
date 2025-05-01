@@ -1,0 +1,233 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}My Borrowed Items{% endblock %}
+
+{% block content %}
+<div class="loans-container">
+    <h2>My Borrowed Items</h2>
+    
+    {% if is_librarian %}
+    <div class="role-indicator librarian-indicator">
+        <p>You are viewing this page as a <strong>Librarian</strong></p>
+    </div>
+    {% endif %}
+    
+    <!-- Pending Requests -->
+    <div class="loan-section">
+        <h3>Pending Requests</h3>
+        {% if pending_loans %}
+            <div class="loans-list">
+                {% for loan in pending_loans %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-date">Requested: {{ loan.requested_at|date:"M d, Y" }}</div>
+                            {% if loan.approved_at %}
+                                <div class="loan-note">Approved: {{ loan.approved_at|date:"M d, Y" }} - Ready for pickup</div>
+                            {% endif %}
+                        </div>
+                        <div class="loan-actions">
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">You don't have any pending requests.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Currently Borrowed -->
+    <div class="loan-section">
+        <h3>Currently Borrowed</h3>
+        {% if active_loans %}
+            <div class="loans-list">
+                {% for loan in active_loans %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-date">Borrowed: {{ loan.borrowed_at|date:"M d, Y" }}</div>
+                            <div class="loan-due">
+                                <strong>Due:</strong> {{ loan.due_date|date:"M d, Y" }}
+                                {% if loan.due_date < current_time %}
+                                    <span class="overdue-tag">OVERDUE</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="loan-actions">
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                            <a href="{% url 'patron_return_loan' loan.id %}" class="btn-return">Return</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">You don't have any items currently borrowed.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Loan History -->
+    <div class="loan-section">
+        <h3>Loan History</h3>
+        {% if past_loans %}
+            <div class="loans-list">
+                {% for loan in past_loans %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-date">Requested: {{ loan.requested_at|date:"M d, Y" }}</div>
+                            {% if loan.status == 'returned' %}
+                                <div class="loan-returned">Returned: {{ loan.returned_at|date:"M d, Y" }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="loan-actions">
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">You don't have any loan history.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .loans-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .loan-section {
+        margin-bottom: 30px;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .loan-section h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+    
+    .loans-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .loan-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .loan-info {
+        flex: 1;
+    }
+    
+    .movie-title {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .loan-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 8px;
+    }
+    
+    .requested {
+        background-color: #3498db;
+    }
+    
+    .approved {
+        background-color: #f39c12;
+    }
+    
+    .borrowed {
+        background-color: #2ecc71;
+    }
+    
+    .returned {
+        background-color: #7f8c8d;
+    }
+    
+    .rejected {
+        background-color: #e74c3c;
+    }
+    
+    .overdue {
+        background-color: #c0392b;
+    }
+    
+    .loan-date, .loan-due, .loan-returned, .loan-note {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 3px;
+    }
+    
+    .overdue-tag {
+        color: #e74c3c;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+    
+    .btn-view {
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+    
+    .btn-return {
+        background-color: #2ecc71;
+        color: white;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .no-loans {
+        color: #777;
+        font-style: italic;
+    }
+    
+    .role-indicator {
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #2ecc71;
+    }
+    
+    .librarian-indicator p {
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .librarian-indicator strong {
+        color: #2ecc71;
+    }
+</style>
+{% endblock %} 

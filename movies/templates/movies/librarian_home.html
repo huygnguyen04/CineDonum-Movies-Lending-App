@@ -1,0 +1,97 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Librarian Home{% endblock %}
+{% block header_title %}Movies: Librarian View{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    {% if user.is_authenticated %}
+        <h2>Welcome, {{ user.profile.real_name|default:user.email }}</h2>
+        <p style="color: #555;">You are viewing the <strong>Librarian Dashboard</strong></p>
+
+        <!-- User Info Box -->
+        <div class="user-info-box">
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ user.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">CLA Staff Since:</span>
+                <span class="info-value">{% if user.profile.date_joined %}{{ user.profile.date_joined|date:"F j, Y" }}{% else %}Today{% endif %}</span>
+            </div>
+            {% if user.profile.real_name %}
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">{{ user.profile.real_name }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Profile Picture Display -->
+        <div class="profile-picture">
+            {% if user.profile.profile_picture %}
+                <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture">
+            {% else %}
+                <img src="{% static 'movies/default_profile.png' %}" alt="Default Profile Picture">
+            {% endif %}
+        </div>
+
+        <!-- Update Profile Button -->
+        <a href="{% url 'upload_profile_picture' %}" class="btn btn-primary">
+            Update Profile
+        </a>
+
+        <hr>
+
+        <!-- Logout Button -->
+        <!-- <a href="/logout" class="btn btn-secondary">Logout</a> -->
+    {% endif %}
+
+    <!-- User Controls -->
+    <h3>User Controls</h3>
+    <p>
+        <a href="{% url 'view_loans' %}" class="btn btn-primary">My Loans</a>
+    </p>
+
+    <!-- Librarian Controls -->
+    <h3>Librarian Controls</h3>
+    <p>
+        <a href="{% url 'add_movie' %}" class="btn btn-secondary">Add a New Movie</a>
+        <a href="{% url 'manage_requests' %}" class="btn btn-secondary">View Collection Access Requests</a>
+        <a href="{% url 'manage_users' %}" class="btn btn-secondary">Manage User Roles</a>
+        <a href="{% url 'manage_loans'%}" class="btn btn-secondary">Manage Loans</a>
+    </p>
+</div>
+
+<style>
+    .user-info-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px auto; /* ⬅️ This centers it horizontally */
+    width: 100%;
+    max-width: 500px;
+}
+    
+    .info-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .info-label {
+        font-weight: bold;
+        width: 150px;
+        color: #495057;
+    }
+    
+    .info-value {
+        flex-grow: 1;
+    }
+    
+    .btn-upload {
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}

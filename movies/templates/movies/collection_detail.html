@@ -1,0 +1,228 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}{{ collection.name }} Details{% endblock %}
+{% block header_title %}Collection: {{ collection.name }}{% endblock %}
+
+{% block content %}
+<div class="collection-detail-container">
+    <div class="collection-header">
+        {% if collection.cover_image %}
+            <img src="{{ collection.cover_image.url }}" alt="{{ collection.name }} Cover" class="collection-cover">
+        {% else %}
+            <img src="{% static 'movies/default_collection.png' %}" alt="Default Collection Cover" class="collection-cover">
+        {% endif %}
+        <div class="collection-info">
+            <h2>{{ collection.name }}</h2>
+            <p>{{ collection.description }}</p>
+            <p><strong>Visibility:</strong> {{ collection.is_public|yesno:"Public,Private" }}</p>
+            {% if collection.owner %}
+                <p><strong>Created by:</strong> {{ collection.owner.email }}</p>
+            {% endif %}
+            
+            {% if user.profile.role == 'librarian' or collection.owner == user %}
+            <div class="collection-actions">
+                <a href="{% url 'edit_collection' collection.id %}" class="btn btn-primary">Edit Collection</a>
+                <a href="{% url 'delete_collection' collection.id %}" class="btn btn-danger">Delete Collection</a>
+            </div>
+            {% endif %}
+        </div>        
+    </div>
+    <hr>
+
+    {% if not show_items %}
+        <p class="private-note">This is a private collection. You do not have permission to view its items.</p>
+    {% endif %}
+
+    {% if show_items %}
+    <div class="container movies-container">
+        <div class="collection-search-box">
+            <div id="search-results-message" style="display: none; margin-bottom: 10px;">
+                <p>Showing results for: <span id="query-text" style="font-weight: bold;"></span> 
+                    <button id="clear-search" class="btn-clear">Clear</button>
+                </p>
+            </div>
+            <div class="search-form">
+                <input type="text" id="collection-search-input" placeholder="Search movies in this collection...">
+            </div>
+        </div>
+        
+        <div id="movie-list-container">
+            <h3>Movies in this Collection</h3>
+            {% if movies %}
+                {% include "movies/includes/movie_grid.html" with movies=movies %}
+            {% else %}
+                <p>No movies in this collection.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% elif user.is_authenticated %}
+        {% if user_request %}
+            {% if user_request.approved %}
+                <p style="color: green; font-weight: bold;">
+                    A librarian approved your request! You can now view the collection.
+                </p>
+                <a href="{% url 'collection_detail' collection.id %}" class="btn-access">
+                    Go to Collection
+                </a>
+            {% elif user_request.rejected %}
+                {% if user_request.appeal_message %}
+                    <p style="color: green; font-weight: bold;">Your appeal was sent.</p>
+                {% else %}
+                    <p style="color: black; font-weight: bold;">
+                        A librarian has rejected your access request.
+                    </p>
+                    <button type="button" id="btnAppeal" class="btn-appeal">Appeal</button>
+                    <div id="appealBox" style="display: none; margin-top:10px; border: 1px solid #ccc; padding: 10px;">
+                        <form method="POST" action="{% url 'appeal_request' collection.id %}">
+                            {% csrf_token %}
+                            <textarea name="appeal_message" placeholder="Enter your appeal message here..." rows="4" cols="50" required></textarea>
+                            <br>
+                            <button type="submit" class="btn btn-primary">Submit Appeal</button>
+                        </form>
+                    </div>
+                    <script>
+                        document.getElementById('btnAppeal').addEventListener('click', function(){
+                            var appealBox = document.getElementById('appealBox');
+                            appealBox.style.display = (appealBox.style.display === 'none' || appealBox.style.display === '') ? 'block' : 'none';
+                        });
+                    </script>
+                {% endif %}
+            {% else %}
+                <p style="color: green; font-weight: bold;">Request was sent!</p>
+            {% endif %}
+        {% else %}
+            {% if request_status == "sent" %}
+                <p style="color: green; font-weight: bold;">Request was sent!</p>
+            {% elif request_status == "failed" %}
+                <p style="color: red; font-weight: bold;">Request failed!</p>
+            {% else %}
+                <form method="POST" action="{% url 'request_access' collection.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-request btn btn-primary">Request Access</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">log in</a> to request access.</p>
+    {% endif %}
+</div>
+
+<style>
+    .collection-search-box {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    #collection-search-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    #collection-search-btn {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-clear {
+        background-color: #7f8c8d;
+        color: white;
+        border: none;
+        padding: 2px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+
+    .private-note {
+        color: #dc3545;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('collection-search-input');
+        const searchBtn = document.getElementById('collection-search-btn');
+        const clearBtn = document.getElementById('clear-search');
+        const movieListContainer = document.getElementById('movie-list-container');
+        const searchResultsMessage = document.getElementById('search-results-message');
+        const queryText = document.getElementById('query-text');
+        let debounceTimeout;
+
+        if (searchInput && searchBtn && movieListContainer) {
+            function performSearch() {
+                const query = searchInput.value.trim();
+                if (!query) return resetSearch();
+
+                searchResultsMessage.style.display = 'block';
+                queryText.textContent = query;
+                const searchUrl = '{% url "search_within_collection" collection.id %}?q=' + encodeURIComponent(query);
+                fetch(searchUrl)
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const moviesList = doc.querySelector('.movies-grid');
+                        const noMoviesMessage = doc.querySelector('.no-results');
+                        if (moviesList) {
+                            movieListContainer.innerHTML = '<h3>Search Results</h3>';
+                            movieListContainer.appendChild(moviesList.cloneNode(true));
+                        } else {
+                            movieListContainer.innerHTML = '<h3>Search Results</h3><p>No movies found matching your search.</p>';
+                        }
+                    });
+            }
+
+            function resetSearch() {
+                searchInput.value = '';
+                searchResultsMessage.style.display = 'none';
+                fetch('{% url "collection_detail" collection.id %}')
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const original = doc.getElementById('movie-list-container');
+                        if (original) movieListContainer.innerHTML = original.innerHTML;
+                    });
+            }
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(performSearch, 300);
+            });
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', resetSearch);
+            }
+        }
+    });
+</script>
+{% endblock %}
+
+

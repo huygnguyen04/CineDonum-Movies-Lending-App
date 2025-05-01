@@ -1,0 +1,76 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}Update Profile Information{% endblock %}
+{% block header_title %}Update Profile Information{% endblock %}
+
+{% block content %}
+<div 
+class="container sm-dashboard-container"
+style="
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    text-align: center;
+">
+    <h2 style="margin-bottom: 20px;">Your CLA Profile</h2>
+    
+    <div class="user-info" style="margin-bottom: 20px; text-align: left; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>CLA Member Since:</strong> {% if user.profile.date_joined %}{{ user.profile.date_joined|date:"F j, Y" }}{% else %}Today{% endif %}</p>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" style="text-align: left;">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 15px;">
+
+            <label for="id_real_name" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                Your Full Name
+            </label>
+            {{ form.real_name }}
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="id_profile_picture" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                Profile Picture
+            </label>
+            {{ form.profile_picture }}
+        </div>
+        
+        <button 
+            type="submit" 
+            class="btn btn-primary"
+            style="
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                width: 100%;
+            "
+        >
+            Update Profile
+        </button>
+    </form>
+</div>
+
+<style>
+    #id_real_name {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+    
+    .user-info p {
+        margin: 5px 0;
+    }
+</style>
+{% endblock %}

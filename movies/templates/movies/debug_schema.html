@@ -1,0 +1,46 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Database Schema Debug{% endblock %}
+{% block header_title %}Database Schema Debug{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    <h2>Database Schema Information</h2>
+    
+    {% if missing_fields %}
+    <div style="margin: 20px 0; padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px;">
+        <h3>Missing Fields Detected</h3>
+        <ul>
+            {% for field in missing_fields %}
+            <li>{{ field }}</li>
+            {% endfor %}
+        </ul>
+        <p>Use the management command to apply migrations:</p>
+        <pre style="background: #eee; padding: 10px; border-radius: 5px;">python manage.py migrate</pre>
+    </div>
+    {% else %}
+    <div style="margin: 20px 0; padding: 15px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">
+        <h3>All Required Fields Present</h3>
+        <p>The database schema appears to be properly configured.</p>
+    </div>
+    {% endif %}
+    
+    <h3>Schema Details</h3>
+    <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 14px;">{{ schema_info }}</pre>
+    
+    <h3>Actions</h3>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        {% if missing_fields %}
+        <form action="{% url 'fix_database_schema' %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" style="display: inline-block; padding: 10px 15px; background-color: #dc3545; color: white; border: none; text-decoration: none; border-radius: 5px; cursor: pointer;">
+                Fix Database Schema
+            </button>
+        </form>
+        {% endif %}
+        <a href="{% url 'admin:index' %}" style="display: inline-block; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Go to Admin</a>
+        <a href="{% url 'index' %}" style="display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px;">Return to Home</a>
+    </div>
+</div>
+{% endblock %} 

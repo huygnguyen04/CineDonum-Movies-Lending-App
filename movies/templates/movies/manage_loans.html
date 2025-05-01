@@ -1,0 +1,323 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}Manage Loan Requests{% endblock %}
+
+{% block content %}
+<div class="manage-loans-container">
+    <h2>Manage Loan Requests</h2>
+    
+    <!-- Pending Requests -->
+    <div class="loan-section">
+        <h3>Pending Requests</h3>
+        {% if pending_loans %}
+            <div class="loans-list">
+                {% for loan in pending_loans %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-patron">
+                                Borrower: {{ loan.patron.email }}
+                                {% if loan.user_role == 'librarian' %}
+                                    <span class="role-tag librarian-tag">Librarian</span>
+                                {% else %}
+                                    <span class="role-tag patron-tag">Patron</span>
+                                {% endif %}
+                            </div>
+                            <div class="loan-date">Requested: {{ loan.requested_at|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="loan-actions">
+                            <form method="POST" action="{% url 'approve_loan' loan.id %}" class="action-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-approve">Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'reject_loan' loan.id %}" class="action-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-reject">Reject</button>
+                            </form>
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">No pending loan requests.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Approved Requests (Ready for Checkout) -->
+    <div class="loan-section">
+        <h3>Approved Requests (Ready for Checkout)</h3>
+        {% if approved_loans %}
+            <div class="loans-list">
+                {% for loan in approved_loans %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-patron">
+                                Borrower: {{ loan.patron.email }}
+                                {% if loan.user_role == 'librarian' %}
+                                    <span class="role-tag librarian-tag">Librarian</span>
+                                {% else %}
+                                    <span class="role-tag patron-tag">Patron</span>
+                                {% endif %}
+                            </div>
+                            <div class="loan-date">Approved: {{ loan.approved_at|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="loan-actions">
+                            <form method="POST" action="{% url 'checkout_loan' loan.id %}" class="action-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-checkout">Check Out</button>
+                            </form>
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">No approved requests waiting for checkout.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Currently Borrowed -->
+    <div class="loan-section">
+        <h3>Currently Borrowed</h3>
+        {% if active_loans %}
+            <div class="loans-list">
+                {% for loan in active_loans %}
+                    <div class="loan-card {% if loan.due_date < current_time %}overdue-card{% endif %}">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-patron">
+                                Borrower: {{ loan.patron.email }}
+                                {% if loan.user_role == 'librarian' %}
+                                    <span class="role-tag librarian-tag">Librarian</span>
+                                {% else %}
+                                    <span class="role-tag patron-tag">Patron</span>
+                                {% endif %}
+                            </div>
+                            <div class="loan-date">Borrowed: {{ loan.borrowed_at|date:"M d, Y" }}</div>
+                            <div class="loan-due">
+                                <strong>Due:</strong> {{ loan.due_date|date:"M d, Y" }}
+                                {% if loan.due_date < current_time %}
+                                    <span class="overdue-tag">OVERDUE</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="loan-actions">
+                            <form method="POST" action="{% url 'return_loan' loan.id %}" class="action-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-return">Return</button>
+                            </form>
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">No movies currently borrowed.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Recently Returned -->
+    <div class="loan-section">
+        <h3>Recently Returned</h3>
+        {% if returned_loans %}
+            <div class="loans-list">
+                {% for loan in returned_loans|slice:":5" %}
+                    <div class="loan-card">
+                        <div class="loan-info">
+                            <div class="movie-title">{{ loan.movie.title }}</div>
+                            <div class="loan-status {{ loan.status }}">{{ loan.status|title }}</div>
+                            <div class="loan-patron">
+                                Borrower: {{ loan.patron.email }}
+                                {% if loan.user_role == 'librarian' %}
+                                    <span class="role-tag librarian-tag">Librarian</span>
+                                {% else %}
+                                    <span class="role-tag patron-tag">Patron</span>
+                                {% endif %}
+                            </div>
+                            <div class="loan-date">Returned: {{ loan.returned_at|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="loan-actions">
+                            <a href="{% url 'movie_reviews' loan.movie.id %}" class="btn-view">View Movie</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-loans">No recently returned movies.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .manage-loans-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .loan-section {
+        margin-bottom: 30px;
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .loan-section h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+    
+    .loans-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .loan-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .overdue-card {
+        border-left: 4px solid #e74c3c;
+    }
+    
+    .loan-info {
+        flex: 1;
+    }
+    
+    .movie-title {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .loan-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 8px;
+    }
+    
+    .requested {
+        background-color: #3498db;
+    }
+    
+    .approved {
+        background-color: #f39c12;
+    }
+    
+    .borrowed {
+        background-color: #2ecc71;
+    }
+    
+    .returned {
+        background-color: #7f8c8d;
+    }
+    
+    .rejected {
+        background-color: #e74c3c;
+    }
+    
+    .overdue {
+        background-color: #c0392b;
+    }
+    
+    .loan-date, .loan-due, .loan-patron {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 3px;
+    }
+    
+    .overdue-tag {
+        color: #e74c3c;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+    
+    .loan-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .action-form {
+        margin: 0;
+    }
+    
+    .btn-approve, .btn-reject, .btn-checkout, .btn-return, .btn-view {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-approve {
+        background-color: #2ecc71;
+    }
+    
+    .btn-reject {
+        background-color: #e74c3c;
+    }
+    
+    .btn-checkout {
+        background-color: #f39c12;
+    }
+    
+    .btn-return {
+        background-color: #9b59b6;
+    }
+    
+    .btn-view {
+        background-color: #3498db;
+    }
+    
+    .no-loans {
+        color: #777;
+        font-style: italic;
+    }
+    
+    .btn-reject:hover {
+        background-color: #e74c3c;
+    }
+    
+    /* Role tags */
+    .role-tag {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: bold;
+        color: white;
+        margin-left: 5px;
+    }
+    
+    .librarian-tag {
+        background-color: #2ecc71;
+    }
+    
+    .patron-tag {
+        background-color: #3498db;
+    }
+</style>
+{% endblock %} 

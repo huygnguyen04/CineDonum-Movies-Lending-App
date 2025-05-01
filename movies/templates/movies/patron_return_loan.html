@@ -1,0 +1,112 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}Return Movie - {{ loan.movie.title }}{% endblock %}
+
+{% block content %}
+<div class="return-container">
+    <h2>Return Movie</h2>
+    
+    <div class="return-card">
+        <div class="movie-info">
+            <h3>{{ loan.movie.title }}</h3>
+            <p class="loan-details">
+                <strong>Borrowed on:</strong> {{ loan.borrowed_at|date:"M d, Y" }}<br>
+                <strong>Due date:</strong> {{ loan.due_date|date:"M d, Y" }}
+                {% if loan.due_date < current_time %}
+                    <span class="overdue-tag">OVERDUE</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="return-confirmation">
+            <p>Are you sure you want to return this movie?</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm">Confirm Return</button>
+                <a href="{% url 'view_loans' %}" class="btn-cancel">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .return-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .return-card {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .movie-info {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .movie-info h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    
+    .loan-details {
+        line-height: 1.6;
+        color: #555;
+    }
+    
+    .overdue-tag {
+        display: inline-block;
+        background-color: #e74c3c;
+        color: white;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 5px;
+    }
+    
+    .return-confirmation {
+        text-align: center;
+    }
+    
+    .return-confirmation p {
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+    
+    .btn-confirm, .btn-cancel {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        text-decoration: none;
+        margin: 0 5px;
+    }
+    
+    .btn-confirm {
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-confirm:hover {
+        background-color: #27ae60;
+    }
+    
+    .btn-cancel {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #c0392b;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,162 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}Browse All Movies{% endblock %}
+{% block header_title %}Browse All Movies{% endblock %}
+
+{% block content %}
+
+<h1 class="title py-2" style="color : #282e33">Our Movie Library</h1>
+
+<!-- Search Bar -->
+<div class="search-container">
+    {% if user.is_authenticated and user.profile.role == 'librarian' %}
+    <a class="btn btn-primary" href="{% url 'add_movie' %}" style="margin-bottom : 15px;">Add a new Movie</a>
+    {% endif %}
+    <br/>
+    <input type="text" id="searchInput" placeholder="Search movies name..." />
+    
+    
+    <!-- <a class="btn btn-primary" id="resetButton">Reset</a> -->
+</div>
+
+        
+<!-- 3 x n grid, same for collections -->
+<div class="container movies-container" id="moviesGrid">
+        {% if movies %}
+                <div class="row g-3">
+                {% for movie in movies %}
+                <div class="col-4 movie-wrapper">
+                    <div class="movie-card h-100 card">
+                        <!-- Movie Images -->
+                        <div class="movie-img-container">
+                            <div class="movie-images-scroll">   
+                            {% if movie.images.exists %}
+                                {% for image_obj in movie.images.all %}
+                                    <div class="movie-image-wrapper">
+                                        <img src="{{ image_obj.image.url }}" alt="{{ movie.title }} image">
+                                        {% if user.is_authenticated and user.profile.role == 'librarian' %}
+                                            <a href="{% url 'remove_movie_image' image_obj.id %}"
+                                               class="remove-image-link"
+                                               title="Remove image">
+                                                &times;
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <img class="default-image"
+                                     src="{% static 'movies/default_movie.png' %}"
+                                     alt="Default movie image">
+                            {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Movie Info -->
+                        <div class="card-body">
+                            <h3 class="movie-title">
+                                <a href="{% url 'movie_reviews' movie.id %}">
+                                    {{ movie.title }}
+                                </a>
+                                <span class="status-badge {% if movie.status == 'available' %}status-available{% else %}status-unavailable{% endif %}">
+                                    {{ movie.status|title }}
+                                </span>
+                            </h3>
+                            <p class="item-description">{{ movie.description }}</p>
+                            <p><strong>Released on:</strong> {{ movie.release_date }}</p>
+                            {% if movie.key_value %}
+                                <p><strong>ID:</strong> <span class="id-badge">{{ movie.key_value }}</span></p>
+                            {% endif %}
+                            <p><strong>Location:</strong> {{ movie.location }}</p>
+                        </div>
+                        <!-- Librarian: Admin Actions -->
+                        {% if user.is_authenticated and user.profile.role == 'librarian' %}
+                            <div class="admin-actions">
+                                <h4 style="color : #7fcf84">Admin Actions</h4>
+                                <a href="{% url 'add_movie_image' movie.id %}" class="btn btn-primary">Add Image</a><a href="{% url 'remove_movie' movie.id %}" class="btn btn-secondary">Remove Movie</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+        {% else %}
+            <p class="no-movies">No movies found.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+    <script>
+        // Dynamic search bar functionality
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById("searchInput");
+            const resetButton = document.getElementById("resetButton");
+            const movieCards = document.querySelectorAll(".movie-wrapper");
+
+            function filterMovies() {
+                const query = searchInput.value.toLowerCase().trim();
+                movieCards.forEach(card => {
+                    const title = card.querySelector(".movie-title").innerText.toLowerCase();
+                    const description = card.querySelector(".item-description").innerText.toLowerCase();
+                    if (title.includes(query) || description.includes(query)) {
+                        card.style.display = "block";
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+            }
+
+            searchInput.addEventListener("input", filterMovies);
+
+
+        });
+        
+    </script>
+            <!-- resetButton.addEventListener("click", function() {
+                searchInput.value = "";
+                movieCards.forEach(card => {
+                    card.style.display = "block";
+                });
+            }); -->
+    <style>
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .status-available {
+            background-color: #2ecc71;
+        }
+        
+        .status-unavailable {
+            background-color: #e74c3c;
+        }
+        
+        /* ID and Location styling */
+        .movie-info p {
+            margin: 6px 0;
+        }
+        
+        .movie-info p strong {
+            color: #555;
+        }
+        
+        .movie-info .id-badge {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #dee2e6;
+            font-family: monospace;
+            color: #495057;
+        }
+    </style>
+
+{% endblock %}

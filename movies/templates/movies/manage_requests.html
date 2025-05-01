@@ -1,0 +1,154 @@
+{% extends 'movies/base.html' %}
+{% block content %}
+<h2>Access Requests</h2>
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+        font-family: Arial, sans-serif;
+    }
+    th, td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ccc;
+    }
+    th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+    .status-approved {
+        color: green;
+        font-weight: bold;
+    }
+    .status-pending {
+        color: orange;
+        font-weight: bold;
+    }
+    .status-rejected {
+        color: red;
+        font-weight: bold;
+    }
+    .btn-approve {
+        background-color: #4CAF50;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-revoke, .btn-reject {
+        background-color: #f44336;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-appeal {
+        background-color: #2196F3;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .btn-approve:hover,
+    .btn-revoke:hover,
+    .btn-reject:hover,
+    .btn-appeal:hover {
+        opacity: 0.9;
+    }
+    .action-buttons form {
+        display: inline;
+        margin: 0 5px;
+    }
+    .appeal-message-box {
+        display: none;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+    }
+</style>
+
+<table>
+    <tr>
+        <th>Patron</th>
+        <th>Collection</th>
+        <th>Requested At</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for req in requests %}
+    <tr>
+        <td>{{ req.patron.email }}</td>
+        <td>{{ req.collection.name }}</td>
+        <td>{{ req.requested_at|date:"F j, Y" }}</td>
+        <td>
+            {% if req.rejected %}
+                <span class="status-rejected">Rejected</span>
+            {% elif req.approved %}
+                <span class="status-approved">Approved</span>
+            {% else %}
+                <span class="status-pending">Pending</span>
+            {% endif %}
+        </td>
+        <td class="action-buttons">
+            {% if req.rejected %}
+                {% if req.appeal_message %}
+                    <!-- Appeal button toggles a div with the appeal message and decision forms -->
+                    <button type="button" onclick="toggleAppeal('appeal-{{ req.id }}')" class="btn-appeal">Appeal Requested</button>
+                    <div id="appeal-{{ req.id }}" class="appeal-message-box">
+                        <p><strong>Appeal Message:</strong></p>
+                        <p>{{ req.appeal_message }}</p>
+                        <form method="POST" action="{% url 'approve_appeal' req.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-approve">Approve Appeal</button>
+                        </form>
+                        <form method="POST" action="{% url 'reject_appeal' req.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-reject">Reject Appeal</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <span style="color: gray;">No actions available</span>
+                {% endif %}
+            {% elif req.approved %}
+                <form method="POST" action="{% url 'revoke_request' req.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-revoke">Revoke Access</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{% url 'approve_request' req.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-approve">Approve</button>
+                </form>
+                <form method="POST" action="{% url 'reject_request' req.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-reject">Reject</button>
+                </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No access requests found.</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+    function toggleAppeal(id) {
+        var appealBox = document.getElementById(id);
+        if (appealBox.style.display === 'none' || appealBox.style.display === '') {
+            appealBox.style.display = 'block';
+        } else {
+            appealBox.style.display = 'none';
+        }
+    }
+</script>
+
+{% endblock %}

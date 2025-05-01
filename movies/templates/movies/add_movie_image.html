@@ -1,0 +1,23 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Add Image to {{ movie.title }}{% endblock %}
+{% block header_title %}Add Image to {{ movie.title }}{% endblock %}
+
+{% block content %}
+<div class="container sm-dashboard-container">
+    <h2 style="margin-bottom : 20px">Add Image for {{ movie.title }}</h2>
+    <form method="POST" enctype="multipart/form-data" style="margin: auto">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="id_image" style="display: block; font-weight: bold; margin-bottom: 10px;">
+                Select an Image
+            </label>
+            {{ form.image }}
+        </div>
+        <button type="submit" class="btn btn-primary">
+            Upload
+        </button>
+    </form>
+</div>
+{% endblock %}

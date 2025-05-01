@@ -1,0 +1,90 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Remove {{ movie.title }}{% endblock %}
+{% block header_title %}Remove {{ movie.title }}{% endblock %}
+
+{% block content %}
+    <div style="max-width:600px; margin:auto;">
+        <h2>Remove Movie</h2>
+        <div class="confirmation-box">
+            <h3>{{ movie.title }}</h3>
+            <p>Are you sure you want to remove this movie from the library?</p>
+            
+            <div class="movie-details">
+                <p><strong>Description:</strong> {{ movie.description }}</p>
+                <p><strong>Released on:</strong> {{ movie.release_date }}</p>
+                {% if movie.key_value %}
+                    <p><strong>ID/Barcode:</strong> <span class="movie-id-badge">{{ movie.key_value }}</span></p>
+                {% endif %}
+                <p><strong>Location:</strong> {{ movie.location }}</p>
+                <p><strong>Status:</strong> {{ movie.status }}</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" style="background-color: #e3515f; color:white">
+                        Yes, Remove Movie
+                    </button>
+                    <a href="{% url 'available_movies' %}" class="btn btn-primary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+<style>
+    .confirmation-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .movie-details {
+        background-color: #ffffff;
+        border-left: 4px solid #dc3545;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 0 5px 5px 0;
+    }
+
+    .movie-details p {
+        margin: 8px 0;
+    }
+
+    .movie-id-badge {
+        background-color: #f0f8ff;
+        padding: 3px 8px;
+        border-radius: 3px;
+        border: 1px solid #b8daff;
+        font-family: monospace;
+        font-size: 0.95em;
+        color: #004085;
+    }
+
+    .btn-group {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+</style>

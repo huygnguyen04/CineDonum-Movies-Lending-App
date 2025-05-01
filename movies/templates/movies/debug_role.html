@@ -1,0 +1,73 @@
+{% extends 'movies/base.html' %}
+{% load static %}
+
+{% block title %}Debug User Role{% endblock %}
+
+{% block content %}
+<div class="debug-container">
+    <h2>User Role Debug</h2>
+    
+    <div class="user-info">
+        <p><strong>Email:</strong> {{ email }}</p>
+        <p><strong>Current Role:</strong> {{ current_role }}</p>
+        
+        {% if updated %}
+            <div class="role-updated">
+                <p>Role has been updated to: <strong>{{ new_role }}</strong></p>
+                <p>Please refresh the page to see changes take effect.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="actions">
+        <a href="{% url 'patron_home' %}" class="btn-back">Go to Patron Home</a>
+        <a href="{% url 'librarian_home' %}" class="btn-back">Go to Librarian Home</a>
+        <a href="{% url 'view_loans' %}" class="btn-back">View My Loans</a>
+    </div>
+</div>
+
+<style>
+    .debug-container {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .user-info {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 5px;
+        border-left: 4px solid #3498db;
+    }
+    
+    .role-updated {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #d4edda;
+        border-radius: 5px;
+        border-left: 4px solid #28a745;
+        color: #155724;
+    }
+    
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .btn-back {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %} 

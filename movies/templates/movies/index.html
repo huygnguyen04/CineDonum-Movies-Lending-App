@@ -1,0 +1,44 @@
+{% extends "movies/base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Welcome to Movies Catalog{% endblock %}
+
+{% block header_title %}Welcome to Movies Catalog{% endblock header_title %}
+
+{% block content %}
+<div class="index-container container" style="text-align: center; margin-top: 50px; padding-top : 20px">
+    <img src="{% static 'movies/movie.png' %}" alt="Movie Pic" style="max-width: 300px; padding : 20px;">
+
+    <h1>Welcome to CineDonum</h1>
+    <p>The online movie library for all your physical movie viewing needs.</p>
+    <div>
+        <div class="row gx-4">
+            <div class="col-4">
+                <h4>Explore Our Collection</h4>
+                <p class="homepage-subtext">Check out our vast library of movies and user curated collections</p>
+            </div>
+            <div class="col-4">
+                <h4>Make it Your Own</h4>
+                <p class="homepage-subtext">Log in to curate your own collections and share them with other users!</p>
+            </div>
+            <div class="col-4">
+                <h4>Checkout and Enjoy</h4>
+                <p class="homepage-subtext">Checkout physical copies of your all time favorite movies with the click of a button</p>
+            </div>
+        </div>
+    </div>
+    <div class="login-section" style="margin-top: 30px; padding-bottom : 20px;">
+        {% if user.is_authenticated %}
+            <a href="{% url 'view_collections' %}" class="btn btn-primary">
+                View our Collections
+            </a>
+        {% else %}
+            <a href="{% provider_login_url 'google' %}?next=/" class="btn btn-primary">
+                Login with Google
+            </a>
+        {% endif %}
+        <a href="{% url 'available_movies' %}" class="btn btn-primary">View our Movies</a>    
+    </div>
+</div>
+{% endblock %}

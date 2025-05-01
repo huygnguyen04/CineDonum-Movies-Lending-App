@@ -1,0 +1,98 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Manage Users{% endblock %}
+{% block header_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="manage-users-container">
+    <h2>Manage User Roles</h2>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="users-list">
+        <h3>Current Patrons</h3>
+        {% if patrons %}
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Member Since</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patron in patrons %}
+                    <tr>
+                        <td>{{ patron.email }}</td>
+                        <td>{{ patron.profile.real_name|default:"Not provided" }}</td>
+                        <td>{% if patron.profile.date_joined %}{{ patron.profile.date_joined|date:"M d, Y" }}{% else %}Today{% endif %}</td>
+                        <td>
+                            <form method="POST" action="{% url 'upgrade_to_librarian' patron.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-upgrade" onclick="return confirm('Are you sure you want to upgrade {{ patron.email }} to librarian status?')">
+                                    Upgrade to Librarian
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No patrons found in the system.</p>
+        {% endif %}
+    </div>
+
+    <style>
+        .manage-users-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .users-table th, .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .users-table th {
+            background-color: #f5f5f5;
+        }
+        .btn-upgrade {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-upgrade:hover {
+            background-color: #218838;
+        }
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</div>
+{% endblock %} 

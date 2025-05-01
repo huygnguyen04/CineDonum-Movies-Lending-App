@@ -1,0 +1,125 @@
+{% extends "movies/base.html" %}
+{% load static %}
+
+{% block title %}Add a New Collection{% endblock %}
+{% block header_title %}Create New Collection{% endblock %}
+
+{% block content %}
+<div class="add-collection-container">
+    <h2>Create New Collection</h2>
+
+    <div class="collection-type-info">
+        <p><strong>Note:</strong> Collection type (public/private) cannot be changed after creation.</p>
+        {% if user.profile.role == 'patron' %}
+            <p class="patron-note">As a patron, you can only create public collections.</p>
+        {% endif %}
+    </div>
+
+    {% if warning_message %}
+    <div class="warning-message">
+        {{ warning_message }}
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {# Render form fields except allowed_users #}
+        {% for field in form %}
+            {% if field.name != 'allowed_users' %}
+            <div class="form-field">
+                <label>{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        {# Render allowed_users only for librarians #}
+        {% if user.profile.role == "librarian" and form.fields.allowed_users %}
+        <div class="form-field">
+            <label>Add Patrons</label>
+            <p class="patron-help">Select the patrons who should have access to this private collection.</p>
+
+            {% for user_obj in form.fields.allowed_users.queryset %}
+                {% if user_obj.profile.role != "librarian" and not user_obj.is_staff %}
+                <label class="checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        name="{{ form.allowed_users.html_name }}" 
+                        value="{{ user_obj.id }}"
+                        {% if user_obj in form.instance.allowed_users.all %}checked{% endif %}
+                    > {{ user_obj.email }}
+                </label>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="submit-button">Create Collection</button>
+    </form>
+</div>
+
+<style>
+.add-collection-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.collection-type-info {
+    background-color: #e2f3f5;
+    border-left: 4px solid #0099cc;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+}
+
+.patron-note {
+    font-style: italic;
+    color: #dc3545;
+    margin-top: 5px;
+}
+
+.form-field {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.error {
+    color: #dc3545;
+    margin-top: 5px;
+}
+
+.checkbox-label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.patron-help {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.submit-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+</style>
+{% endblock %}
+
+
+

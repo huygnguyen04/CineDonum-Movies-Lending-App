@@ -1,0 +1,59 @@
+{% extends 'movies/base.html' %}
+
+{% block title %}
+My Notifications - Cinematic
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">My Notifications</h1>
+    
+    {% if notifications %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">You have {{ unread_count }} unread notification{{ unread_count|pluralize }}</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for notification in notifications %}
+                    <li class="list-group-item {% if not notification.is_read %}fw-bold bg-light{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="{% if notification.notification_type == 'loan_approved' %}text-success{% elif notification.notification_type == 'loan_rejected' %}text-danger{% else %}text-primary{% endif %}">
+                                    {% if notification.notification_type == 'loan_approved' %}
+                                        <i class="bi bi-check-circle-fill me-2"></i>
+                                    {% elif notification.notification_type == 'loan_rejected' %}
+                                        <i class="bi bi-x-circle-fill me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-bell-fill me-2"></i>
+                                    {% endif %}
+                                </span>
+                                {{ notification.message }}
+                                <div class="text-muted small mt-1">{{ notification.created_at|date:"F j, Y, g:i a" }}</div>
+                            </div>
+                            
+                            {% if not notification.is_read %}
+                                <form method="POST" class="ms-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="notification_id" value="{{ notification.id }}">
+                                    <button type="submit" name="mark_read" class="btn btn-sm btn-outline-secondary">
+                                        Mark as read
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="text-center">
+            <i class="bi bi-bell-slash display-1 text-muted"></i>
+            <p class="lead mt-3">You have no notifications yet.</p>
+        </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{% url 'index' %}" class="btn btn-outline-primary">Back to Home</a>
+    </div>
+</div>
+{% endblock %} 
