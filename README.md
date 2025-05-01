@@ -1,5 +1,8 @@
 # CineDonum: Movie Cataloging and Lending Application
 
+## Heroku App Link
+### [CineDonum](https://cs3240-s25-a29-eea118da5a2d.herokuapp.com/)
+
 ## Project Overview
 CineDonum is a Django-based web application designed to catalog and facilitate lending of physical movies. It allows users to create accounts, browse movie collections, request to borrow movies, and manage their own collections. The application is developed as part of the CS 3240 course at University of Virginia.
 
@@ -49,9 +52,6 @@ CineDonum is a Django-based web application designed to catalog and facilitate l
 - **Cloud Storage**: AWS S3
 - **Authentication**: Google OAuth
 - **Deployment**: Heroku
-
-## Heroku App Link
-### [CineDonum](https://cs3240-s25-a29-eea118da5a2d.herokuapp.com/)
 
 ## Demo Accounts
 
